@@ -60,8 +60,7 @@ browser_listbox_scrollbar.place(x=168, y=165)
 browsers_label = custom_label_set(software_download_tab, 'Browsers', 12, 'bold')
 browsers_label.place(x=0, y=100)
 
-
-utilities_listbox = Listbox(software_download_tab, height=7, width=16, bg='#015475', font=("Consolas", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
+utilities_listbox = Listbox(software_download_tab, height=7, width=19, bg='#015475', font=("Consolas", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
 insert_elements(utilities_listbox, 'utilities')
 utilities_listbox.place(x=190, y=125)
 
@@ -114,10 +113,8 @@ def download_selected_software():
         try:
             for j in browser_listbox.curselection():
                 if get_architecture == 'x86':
-                    #wget.download(all_links['for_x86']['browsers'][browser_listbox.get(j)], out='E:\c++ shit (plus some python)')
                     main_download_using_requests(all_links['for_x86']['browsers'][browser_listbox.get(j)])
                 elif get_architecture == 'AMD64':
-                    #wget.download(all_links['for_x64']['browsers'][browser_listbox.get(j)], out='E:\c++ shit (plus some python)')
                     main_download_using_requests(all_links['for_x64']['browsers'][browser_listbox.get(j)])
 
                 progress['value'] += to_divide
@@ -126,10 +123,8 @@ def download_selected_software():
 
             for k in utilities_listbox.curselection():
                 if get_architecture == 'x86':
-                    #wget.download(all_links['for_x86']['utilities'][utilities_listbox.get(k)], out='E:\c++ shit (plus some python)')
                     main_download_using_requests(all_links['for_x86']['utilities'][utilities_listbox.get(k)])
                 elif get_architecture == 'AMD64':
-                    # wget.download(all_links['for_x64']['utilities'][utilities_listbox.get(k)], out='E:\c++ shit (plus some python)')
                     main_download_using_requests(all_links['for_x64']['utilities'][utilities_listbox.get(k)])
 
                 progress['value'] += to_divide
