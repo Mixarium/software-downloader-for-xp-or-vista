@@ -12,7 +12,7 @@ all_links = associated_links.links_dict
 
 
 def custom_label_set(part_of, text: str, font_size, weight='normal'):
-    return Label(part_of, text=text, font=("Consolas", font_size, weight), background='#015475')
+    return Label(part_of, text=text, font=("Arial", font_size, weight), background='#015475')
 
 
 root = Tk()
@@ -38,34 +38,48 @@ instruction_label = custom_label_set(software_download_tab, 'Select the software
 instruction_label.place(rely=0.03, relx=0.2)
 
 get_architecture = platform.machine()
-is_downloading = False
 
 def insert_elements(given_listbox, search_key):
     if get_architecture == 'AMD64':
-        for i, software_name in enumerate(all_links['for_x64'][search_key].keys()):
+        for i, software_name in enumerate(sorted(all_links['for_x64'][search_key].keys())):
             given_listbox.insert(i, software_name)
     elif get_architecture == 'x86':
-        for i, software_name in enumerate(all_links['for_x86'][search_key].keys()):
+        for i, software_name in enumerate(sorted(all_links['for_x86'][search_key].keys())):
             given_listbox.insert(i, software_name)
 
 
-browser_listbox = Listbox(software_download_tab, height=7, width=18, bg='#015475', font=("Consolas", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
+browser_listbox = Listbox(software_download_tab, height=7, width=16, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
 insert_elements(browser_listbox, 'browsers')
 browser_listbox.place(x=0, y=125)
 
 browser_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=browser_listbox.yview)
 browser_listbox['yscrollcommand'] = browser_listbox_scrollbar.set
-browser_listbox_scrollbar.place(x=168, y=165)
+browser_listbox_scrollbar.place(x=149, y=165)
 
 browsers_label = custom_label_set(software_download_tab, 'Browsers', 12, 'bold')
 browsers_label.place(x=0, y=100)
 
-utilities_listbox = Listbox(software_download_tab, height=7, width=19, bg='#015475', font=("Consolas", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
+utilities_listbox = Listbox(software_download_tab, height=7, width=22, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
 insert_elements(utilities_listbox, 'utilities')
-utilities_listbox.place(x=190, y=125)
+utilities_listbox.place(x=170, y=125)
+
+utilities_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=utilities_listbox.yview)
+utilities_listbox['yscrollcommand'] = utilities_listbox_scrollbar.set
+utilities_listbox_scrollbar.place(x=373, y=165)
 
 utilities_label = custom_label_set(software_download_tab, 'Utilities', 12, 'bold')
-utilities_label.place(x=190, y=100)
+utilities_label.place(x=170, y=100)
+
+media_listbox = Listbox(software_download_tab, height=7, width=20, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
+insert_elements(media_listbox, 'media')
+media_listbox.place(x=393, y=125)
+
+media_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=media_listbox.yview)
+media_listbox['yscrollcommand'] = media_listbox_scrollbar.set
+media_listbox_scrollbar.place(x=580, y=165)
+
+media_label = custom_label_set(software_download_tab, 'Media', 12, 'bold')
+media_label.place(x=390, y=100)
 
 out_directory = ""
 
@@ -78,8 +92,10 @@ def change_output_directory():
         messagebox.showinfo('Output directory saved', 'Output directory saved to \"{}.\"'.format(out_directory))
 
 
-change_directory_button = Button(software_download_tab, text="Set output directory", font=("Consolas", 12), command=change_output_directory)
+change_directory_button = Button(software_download_tab, text="Set output directory", font=("Arial", 12), command=change_output_directory)
 change_directory_button.place(x=10, y=525)
+
+is_downloading = False
 
 
 def main_download_using_requests(url):
@@ -97,10 +113,10 @@ def download_selected_software():
     if not out_directory:
         return messagebox.showerror('Missing output directory', "The output directory hasn't been chosen yet.")
     if not is_downloading:
-        sum_of_selected = len(browser_listbox.curselection()) + len(utilities_listbox.curselection())
+        sum_of_selected = len(browser_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection())
         if sum_of_selected == 0:
             return messagebox.showerror('No programs selected', 'No programs were selected.')
-        to_divide = 100 / (len(browser_listbox.curselection()) + len(utilities_listbox.curselection()))
+        to_divide = 100 / sum_of_selected
         progress = Progressbar(software_download_tab, orient = HORIZONTAL, length = 200, mode = 'determinate')
         percentage_completed = custom_label_set(software_download_tab, text='0% completed.', font_size=12)
         if not progress.winfo_ismapped():
@@ -130,8 +146,20 @@ def download_selected_software():
                 progress['value'] += to_divide
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
                 software_download_tab.update_idletasks()
-        except:
-            print('an error has occured (this text will only be displayed temporarily).')
+            
+            for l in media_listbox.curselection():
+                if get_architecture == 'x86':
+                    main_download_using_requests(all_links['for_x86']['media'][media_listbox.get(l)])
+                elif get_architecture == 'AMD64':
+                    main_download_using_requests(all_links['for_x64']['media'][media_listbox.get(l)])
+
+                progress['value'] += to_divide
+                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
+                software_download_tab.update_idletasks()
+
+        except requests.exceptions.ConnectionError:
+            messagebox.showerror("Failed connection establishment", "Failed to establish a new connection. Make sure you are connected to a network.")
+
         is_downloading = False
     else:
         messagebox.showwarning('Currently downloading', "There's a current downloading process happening now.")
@@ -141,7 +169,7 @@ def run_download_process_on_thread():
     t = threading.Thread(target=download_selected_software)
     t.start()
 
-download_button = Button(software_download_tab, text="Start download", font=("Consolas", 12), command=run_download_process_on_thread)
+download_button = Button(software_download_tab, text="Start download", font=("Arial", 12), command=run_download_process_on_thread)
 download_button.place(x=450, y=525)
 
 if __name__ == "__main__":
