@@ -81,6 +81,17 @@ media_listbox_scrollbar.place(x=580, y=165)
 media_label = custom_label_set(software_download_tab, 'Media', 12, 'bold')
 media_label.place(x=390, y=100)
 
+components_listbox = Listbox(software_download_tab, height=7, width=20, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
+insert_elements(components_listbox, 'components')
+components_listbox.place(x=0, y=300)
+
+components_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=components_listbox.yview)
+components_listbox['yscrollcommand'] = components_listbox_scrollbar.set
+components_listbox_scrollbar.place(x=185, y=340)
+
+components_label = custom_label_set(software_download_tab, 'Components', 12, 'bold')
+components_label.place(x=0, y=275)
+
 out_directory = ""
 
 
@@ -113,7 +124,7 @@ def download_selected_software():
     if not out_directory:
         return messagebox.showerror('Missing output directory', "The output directory hasn't been chosen yet.")
     if not is_downloading:
-        sum_of_selected = len(browser_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection())
+        sum_of_selected = len(browser_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection()) + len(components_listbox.curselection())
         if sum_of_selected == 0:
             return messagebox.showerror('No programs selected', 'No programs were selected.')
         to_divide = 100 / sum_of_selected
@@ -152,6 +163,16 @@ def download_selected_software():
                     main_download_using_requests(all_links['for_x86']['media'][media_listbox.get(l)])
                 elif get_architecture == 'AMD64':
                     main_download_using_requests(all_links['for_x64']['media'][media_listbox.get(l)])
+
+                progress['value'] += to_divide
+                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
+                software_download_tab.update_idletasks()
+
+            for m in components_listbox.curselection():
+                if get_architecture == 'x86':
+                    main_download_using_requests(all_links['for_x86']['components'][components_listbox.get(m)])
+                elif get_architecture == 'AMD64':
+                    main_download_using_requests(all_links['for_x64']['components'][components_listbox.get(m)])
 
                 progress['value'] += to_divide
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
