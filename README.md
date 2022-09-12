@@ -1,5 +1,5 @@
 # software-downloader-for-xp-or-vista
-a tkinter window which you can use to download multiple software at once.
+Executable window that installs multiple XP/Vista software at once. 
 
 
 # Compatibility
