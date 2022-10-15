@@ -48,13 +48,13 @@ def insert_elements(given_listbox, search_key):
             given_listbox.insert(i, software_name)
 
 
-browser_listbox = Listbox(software_download_tab, height=7, width=16, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
-insert_elements(browser_listbox, 'browsers')
-browser_listbox.place(x=0, y=125)
+browsers_listbox = Listbox(software_download_tab, height=7, width=16, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
+insert_elements(browsers_listbox, 'browsers')
+browsers_listbox.place(x=0, y=125)
 
-browser_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=browser_listbox.yview)
-browser_listbox['yscrollcommand'] = browser_listbox_scrollbar.set
-browser_listbox_scrollbar.place(x=149, y=165)
+browsers_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=browsers_listbox.yview)
+browsers_listbox['yscrollcommand'] = browsers_listbox_scrollbar.set
+browsers_listbox_scrollbar.place(x=149, y=165)
 
 browsers_label = custom_label_set(software_download_tab, 'Browsers', 12, 'bold')
 browsers_label.place(x=0, y=100)
@@ -124,7 +124,7 @@ def download_selected_software():
     if not out_directory:
         return messagebox.showerror('Missing output directory', "The output directory hasn't been chosen yet.")
     if not is_downloading:
-        sum_of_selected = len(browser_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection()) + len(components_listbox.curselection())
+        sum_of_selected = len(browsers_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection()) + len(components_listbox.curselection())
         if sum_of_selected == 0:
             return messagebox.showerror('No programs selected', 'No programs were selected.')
         to_divide = 100 / sum_of_selected
@@ -137,12 +137,12 @@ def download_selected_software():
             progress['value'] = 0
 
         is_downloading = True
-        try:
-            for j in browser_listbox.curselection():
+        try:  # objective for now - try not to use for loops repetitively
+            for j in browsers_listbox.curselection():
                 if get_architecture == 'x86':
-                    main_download_using_requests(all_links['for_x86']['browsers'][browser_listbox.get(j)])
+                    main_download_using_requests(all_links['for_x86']['browsers'][browsers_listbox.get(j)])
                 elif get_architecture == 'AMD64':
-                    main_download_using_requests(all_links['for_x64']['browsers'][browser_listbox.get(j)])
+                    main_download_using_requests(all_links['for_x64']['browsers'][browsers_listbox.get(j)])
 
                 progress['value'] += to_divide
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
