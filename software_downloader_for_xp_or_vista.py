@@ -28,14 +28,20 @@ styles.configure("Tab", focuscolor=styles.configure(".")["background"])
 
 notebook = ttk.Notebook(root, height=600, width=600)
 software_download_tab = Frame(notebook, bg='#015475')
+current_result_tab = Frame(notebook, bg='#015475')
 settingstab = Frame(notebook, bg='#015475')
 notebook.place(x=-1, y=0)
 
 notebook.add(software_download_tab, text="Select software")
+notebook.add(current_result_tab, text="Current results")
 notebook.add(settingstab, text="Settings")
 
+downloaded_count_label = custom_label_set(current_result_tab, 'No download process has been started yet.', 20)
+downloaded_count_label.pack(side=TOP)
+
 instruction_label = custom_label_set(software_download_tab, 'Select the software that\nyou want to download', 20)
-instruction_label.place(rely=0.03, relx=0.2)
+instruction_label.pack(side=TOP)
+#instruction_label.place(rely=0.03, relx=0.2)
 
 get_architecture = platform.machine()
 
@@ -109,6 +115,13 @@ change_directory_button.place(x=10, y=525)
 is_downloading = False
 
 
+def clear_tab(selected_tab, exception):
+    widget_list = selected_tab.winfo_children()
+    for w in widget_list:
+        if not isinstance(w, exception):
+            w.destroy()
+            
+
 def main_download_using_requests(url):
     with requests.get(url, stream=True) as r:
         name = url.split('/')[-1]
@@ -123,6 +136,7 @@ def download_selected_software():
     global is_downloading
     if not out_directory:
         return messagebox.showerror('Missing output directory', "The output directory hasn't been chosen yet.")
+
     if not is_downloading:
         sum_of_selected = len(browsers_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection()) + len(components_listbox.curselection())
         if sum_of_selected == 0:
@@ -137,53 +151,51 @@ def download_selected_software():
             progress['value'] = 0
 
         is_downloading = True
-        try:  # objective for now - try not to use for loops repetitively
-            for j in browsers_listbox.curselection():
-                if get_architecture == 'x86':
-                    main_download_using_requests(all_links['for_x86']['browsers'][browsers_listbox.get(j)])
-                elif get_architecture == 'AMD64':
-                    main_download_using_requests(all_links['for_x64']['browsers'][browsers_listbox.get(j)])
+        downloaded_count = 0
+        unable_to_download = []
+        clear_tab(current_result_tab, exception=Scrollbar)
+        download_result = Label(current_result_tab, text='0/{} downloaded.'.format(sum_of_selected), font=("Arial", 16), bg='#015475')
+        download_result.pack(side=TOP, anchor='nw')
 
+        def dict_download(software_dictkey, set_listbox):
+            nonlocal downloaded_count
+            # software_dictkey: str
+            for selected_key in set_listbox.curselection():
+                software_name = set_listbox.get(selected_key)
+                try:
+                    if get_architecture == 'x86':
+                        download_from_dict = all_links['for_x86'][software_dictkey]
+                    elif get_architecture == 'AMD64':
+                        download_from_dict = all_links['for_x64'][software_dictkey]
+                    main_download_using_requests(download_from_dict[software_name])
+                    downloaded_count += 1
+                    download_result.config(text='{}/{} downloaded.'.format(downloaded_count, sum_of_selected))
+                except requests.exceptions.ConnectionError:
+                    not_downloaded_error_thread = threading.Thread(target=messagebox.showerror, args=["Failed connection establishment", "Failed to download \"{}\". Either the site couldn't be accessed properly, or make sure you are connected to a network.".format(set_listbox.get(selected_key))])
+                    not_downloaded_error_thread.start()
+                    unable_to_download.append(software_name)
+                
                 progress['value'] += to_divide
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
                 software_download_tab.update_idletasks()
 
-            for k in utilities_listbox.curselection():
-                if get_architecture == 'x86':
-                    main_download_using_requests(all_links['for_x86']['utilities'][utilities_listbox.get(k)])
-                elif get_architecture == 'AMD64':
-                    main_download_using_requests(all_links['for_x64']['utilities'][utilities_listbox.get(k)])
+        dict_download('browsers', browsers_listbox)
+        dict_download('media', media_listbox)
+        dict_download('utilities', utilities_listbox)
+        dict_download('components', components_listbox)
 
-                progress['value'] += to_divide
-                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
-                software_download_tab.update_idletasks()
-            
-            for l in media_listbox.curselection():
-                if get_architecture == 'x86':
-                    main_download_using_requests(all_links['for_x86']['media'][media_listbox.get(l)])
-                elif get_architecture == 'AMD64':
-                    main_download_using_requests(all_links['for_x64']['media'][media_listbox.get(l)])
+        if unable_to_download:
+            not_downloaded_list_label = custom_label_set(current_result_tab, "The following couldn't be downloaded:", 16)
+            not_downloaded_list_label.pack(side=TOP, anchor='nw')
 
-                progress['value'] += to_divide
-                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
-                software_download_tab.update_idletasks()
+            for not_downloaded in unable_to_download:
+                software_not_downloaded_label = custom_label_set(current_result_tab, not_downloaded, 16)
+                software_not_downloaded_label.pack(side=TOP, anchor='nw')
 
-            for m in components_listbox.curselection():
-                if get_architecture == 'x86':
-                    main_download_using_requests(all_links['for_x86']['components'][components_listbox.get(m)])
-                elif get_architecture == 'AMD64':
-                    main_download_using_requests(all_links['for_x64']['components'][components_listbox.get(m)])
-
-                progress['value'] += to_divide
-                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
-                software_download_tab.update_idletasks()
-
-        except requests.exceptions.ConnectionError:
-            messagebox.showerror("Failed connection establishment", "Failed to establish a new connection. Make sure you are connected to a network.")
 
         is_downloading = False
     else:
-        messagebox.showwarning('Currently downloading', "There's a current downloading process happening now.")
+        messagebox.showwarning('Currently downloading', "There's a current download process happening now.")
 
 
 def run_download_process_on_thread():
