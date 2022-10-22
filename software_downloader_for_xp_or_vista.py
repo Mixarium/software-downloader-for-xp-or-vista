@@ -1,3 +1,5 @@
+from concurrent.futures import thread
+from email import message
 from tkinter import *
 from tkinter import ttk
 from tkinter.filedialog import askdirectory
@@ -28,15 +30,15 @@ styles.configure("Tab", focuscolor=styles.configure(".")["background"])
 
 notebook = ttk.Notebook(root, height=600, width=600)
 software_download_tab = Frame(notebook, bg='#015475')
-current_result_tab = Frame(notebook, bg='#015475')
+errors_tab = Frame(notebook, bg='#015475')
 settingstab = Frame(notebook, bg='#015475')
 notebook.place(x=-1, y=0)
 
 notebook.add(software_download_tab, text="Select software")
-notebook.add(current_result_tab, text="Current results")
+notebook.add(errors_tab, text="Errors")
 notebook.add(settingstab, text="Settings")
 
-downloaded_count_label = custom_label_set(current_result_tab, 'No download process has been started yet.', 20)
+downloaded_count_label = custom_label_set(errors_tab, 'No download process has been started yet.', 20)
 downloaded_count_label.pack(side=TOP)
 
 instruction_label = custom_label_set(software_download_tab, 'Select the software that\nyou want to download', 20)
@@ -112,28 +114,66 @@ def change_output_directory():
 change_directory_button = Button(software_download_tab, text="Set output directory", font=("Arial", 12), command=change_output_directory)
 change_directory_button.place(x=10, y=525)
 
+threading_enabled = False
+threading_toggle_check = IntVar()
+
+
+def threading_toggle():
+    varcheck = threading_toggle_check.get()
+    if not is_downloading:
+        global threading_enabled
+        if varcheck == 1:
+            threading_enabled = True
+        elif varcheck == 0:
+            threading_enabled = False
+    else:
+        threading_toggle_check.set(not varcheck)
+        current_download_process_from_thread_toggle_attempt_error = threading.Thread(target=messagebox.showerror, args=['Currently downloading', "There's a current download process happening now. Can't switch the threading option."])
+        current_download_process_from_thread_toggle_attempt_error.start()
+
+
+threading_toggle_checkbutton = Checkbutton(settingstab, text='Enable threading', variable=threading_toggle_check, command=threading_toggle, font=('Arial', 16), bg='#015475', activebackground='#015475')
+threading_toggle_checkbutton.place(x=0, y=0)
+
 is_downloading = False
 
 
-def clear_tab(selected_tab, exception):
+def clear_tab(selected_tab):
     widget_list = selected_tab.winfo_children()
     for w in widget_list:
-        if not isinstance(w, exception):
-            w.destroy()
+        w.destroy()
             
 
+progress = Progressbar(software_download_tab, orient = HORIZONTAL, length = 200, mode = 'determinate')
+percentage_completed = custom_label_set(software_download_tab, text='0% completed.', font_size=12)
+progressbar_increment = 0
+
 def main_download_using_requests(url):
-    with requests.get(url, stream=True) as r:
-        name = url.split('/')[-1]
-        name = name.split('dwl=')[-1]
-        r.raise_for_status()
-        with open(out_directory + "\\" + name, 'wb') as write_file:
-            for chunk in r.iter_content(chunk_size=8192):
-                write_file.write(chunk)
+
+    def actual_main_download(url):
+        with requests.get(url, stream=True) as r:
+            name = url.split('/')[-1]
+            name = name.split('dwl=')[-1]
+            r.raise_for_status()
+            with open(out_directory + "\\" + name, 'wb') as write_file:
+                for chunk in r.iter_content(chunk_size=8192):
+                    write_file.write(chunk)
+
+        progress['value'] += progressbar_increment
+        percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
+        software_download_tab.update_idletasks()    
+
+    if threading_enabled:
+        new_download_thread = threading.Thread(target=actual_main_download, args=[url], daemon=True)
+        new_download_thread.start()
+    else:
+        actual_main_download(url)
 
 
 def download_selected_software():
     global is_downloading
+    global progressbar_increment
+
     if not out_directory:
         return messagebox.showerror('Missing output directory', "The output directory hasn't been chosen yet.")
 
@@ -141,24 +181,17 @@ def download_selected_software():
         sum_of_selected = len(browsers_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection()) + len(components_listbox.curselection())
         if sum_of_selected == 0:
             return messagebox.showerror('No programs selected', 'No programs were selected.')
-        to_divide = 100 / sum_of_selected
-        progress = Progressbar(software_download_tab, orient = HORIZONTAL, length = 200, mode = 'determinate')
-        percentage_completed = custom_label_set(software_download_tab, text='0% completed.', font_size=12)
-        if not progress.winfo_ismapped():
-            progress.place(x=0, y=500)
-            percentage_completed.place(x=210, y=500)
-        else:
-            progress['value'] = 0
+        progressbar_increment = 100 / sum_of_selected
+        progress.place(x=0, y=500)
+        percentage_completed.config(text='0% completed.')
+        percentage_completed.place(x=210, y=500)
+        progress['value'] = 0
 
         is_downloading = True
-        downloaded_count = 0
         unable_to_download = []
-        clear_tab(current_result_tab, exception=Scrollbar)
-        download_result = Label(current_result_tab, text='0/{} downloaded.'.format(sum_of_selected), font=("Arial", 16), bg='#015475')
-        download_result.pack(side=TOP, anchor='nw')
+        clear_tab(errors_tab)
 
         def dict_download(software_dictkey, set_listbox):
-            nonlocal downloaded_count
             # software_dictkey: str
             for selected_key in set_listbox.curselection():
                 software_name = set_listbox.get(selected_key)
@@ -168,34 +201,29 @@ def download_selected_software():
                     elif get_architecture == 'AMD64':
                         download_from_dict = all_links['for_x64'][software_dictkey]
                     main_download_using_requests(download_from_dict[software_name])
-                    downloaded_count += 1
-                    download_result.config(text='{}/{} downloaded.'.format(downloaded_count, sum_of_selected))
                 except requests.exceptions.ConnectionError:
                     not_downloaded_error_thread = threading.Thread(target=messagebox.showerror, args=["Failed connection establishment", "Failed to download \"{}\". Either the site couldn't be accessed properly, or make sure you are connected to a network.".format(set_listbox.get(selected_key))])
                     not_downloaded_error_thread.start()
                     unable_to_download.append(software_name)
                 
-                progress['value'] += to_divide
-                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
-                software_download_tab.update_idletasks()
-
         dict_download('browsers', browsers_listbox)
         dict_download('media', media_listbox)
         dict_download('utilities', utilities_listbox)
         dict_download('components', components_listbox)
 
         if unable_to_download:
-            not_downloaded_list_label = custom_label_set(current_result_tab, "The following couldn't be downloaded:", 16)
+            not_downloaded_list_label = custom_label_set(errors_tab, "The following couldn't be downloaded:", 16)
             not_downloaded_list_label.pack(side=TOP, anchor='nw')
 
             for not_downloaded in unable_to_download:
-                software_not_downloaded_label = custom_label_set(current_result_tab, not_downloaded, 16)
+                software_not_downloaded_label = custom_label_set(errors_tab, not_downloaded, 16)
                 software_not_downloaded_label.pack(side=TOP, anchor='nw')
 
 
         is_downloading = False
     else:
-        messagebox.showwarning('Currently downloading', "There's a current download process happening now.")
+        current_download_process_from_download_attempt_error = threading.Thread(target=messagebox.showerror, args=['Currently downloading', "There's a current download process happening now."])
+        current_download_process_from_download_attempt_error.start()
 
 
 def run_download_process_on_thread():

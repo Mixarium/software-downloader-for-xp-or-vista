@@ -60,6 +60,7 @@ links_dict = {
             'Dependency Walker': 'https://www.dependencywalker.com/depends22_x86.zip', # ?
             'Everything': 'https://www.voidtools.com/Everything-1.4.1.1022.x86-Setup.exe', # !
             'FFmpeg': 'https://rwijnsma.home.xs4all.nl/files/ffmpeg/ffmpeg-5.2-564-e4ac156-win32-static-xpmod-sse.7z', # !
+            'GPU-Z': 'https://archive.org/download/gpu-z.-2.47.0/GPU-Z.2.47.0.exe', # ?
             'HxD': 'https://mh-nexus.de/downloads/HxDSetup.zip',
             'ImgBurn': 'https://download.imgburn.com/SetupImgBurn_2.5.8.0.exe', # !
             'jre8u152 (Java)': 'https://i430vx.net/files/XP/EOL/jre-8u152-windows-i586.exe',
@@ -68,6 +69,7 @@ links_dict = {
             'qBittorrent': 'https://archive.org/download/qbittorrent_4.1.9.1_setup/qbittorrent_4.1.9.1_setup.exe',
             'Rufus': 'https://github.com/pbatard/rufus/releases/download/v2.18/rufus-2.18.exe',
             'Snappy': 'http://sdi-tool.org:8080/releases/SDI_R2201.zip', # !
+            'TCP Optimizer': 'https://www.speedguide.net/files/TCPOptimizer.exe',
             'TenFourFoxPEP': 'https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/TenFourFoxPEP_1.zip',
             'Xtreme Download Manager': 'https://archive.org/download/xdmsetup-2018_202209/xdmsetup-2018.msi',
             'youtube-dl': 'https://yt-dl.org/downloads/2021.12.17/youtube-dl.exe', # !
@@ -115,6 +117,7 @@ links_dict = {
             'Dependency Walker': 'https://www.dependencywalker.com/depends22_x64.zip', # ?
             'Everything': 'https://www.voidtools.com/Everything-1.4.1.1022.x64-Setup.exe', # !
             'FFmpeg': 'https://rwijnsma.home.xs4all.nl/files/ffmpeg/ffmpeg-5.2-564-e4ac156-win32-static-xpmod-sse.7z', # !
+            'GPU-Z': 'https://archive.org/download/gpu-z.-2.47.0/GPU-Z.2.47.0.exe',
             'HxD': 'https://mh-nexus.de/downloads/HxDSetup.zip',
             'ImgBurn': 'https://download.imgburn.com/SetupImgBurn_2.5.8.0.exe', # !
             'jre8u152 (Java)': 'https://archive.org/download/jre-8u152-windows-x64/jre-8u152-windows-x64.exe',
@@ -123,6 +126,7 @@ links_dict = {
             'qBittorrent': 'https://archive.org/download/qbittorrent_4.1.9.1_setup/qbittorrent_4.1.9.1_setup.exe',
             'Rufus 2.18': 'https://github.com/pbatard/rufus/releases/download/v2.18/rufus-2.18.exe',
             'Snappy': 'http://sdi-tool.org:8080/releases/SDI_R2201.zip', # !
+            'TCP Optimizer': 'https://www.speedguide.net/files/TCPOptimizer.exe',
             'TenFourFoxPEP': 'https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/TenFourFoxPEP_1.zip',
             'Xtreme Download Manager': 'https://archive.org/download/xdmsetup-2018_202209/xdmsetup-2018.msi',
             'youtube-dl': 'https://yt-dl.org/downloads/2021.12.17/youtube-dl.exe', # !
