@@ -1,5 +1,3 @@
-from concurrent.futures import thread
-from email import message
 from tkinter import *
 from tkinter import ttk
 from tkinter.filedialog import askdirectory
@@ -38,12 +36,11 @@ notebook.add(software_download_tab, text="Select software")
 notebook.add(errors_tab, text="Errors")
 notebook.add(settingstab, text="Settings")
 
-downloaded_count_label = custom_label_set(errors_tab, 'No download process has been started yet.', 20)
-downloaded_count_label.pack(side=TOP)
-
 instruction_label = custom_label_set(software_download_tab, 'Select the software that\nyou want to download', 20)
 instruction_label.pack(side=TOP)
-#instruction_label.place(rely=0.03, relx=0.2)
+
+following_not_downloaded_label = custom_label_set(errors_tab, "The following couldn't be downloaded:", 16)
+following_not_downloaded_label.pack(side=TOP, anchor='nw')
 
 get_architecture = platform.machine()
 
@@ -138,9 +135,9 @@ threading_toggle_checkbutton.place(x=0, y=0)
 is_downloading = False
 
 
-def clear_tab(selected_tab):
+def clear_tab(selected_tab, from_index=0):
     widget_list = selected_tab.winfo_children()
-    for w in widget_list:
+    for w in widget_list[from_index:]:
         w.destroy()
             
 
@@ -148,16 +145,23 @@ progress = Progressbar(software_download_tab, orient = HORIZONTAL, length = 200,
 percentage_completed = custom_label_set(software_download_tab, text='0% completed.', font_size=12)
 progressbar_increment = 0
 
-def main_download_using_requests(url):
+def main_download_using_requests(url, soft_name):
 
     def actual_main_download(url):
-        with requests.get(url, stream=True) as r:
-            name = url.split('/')[-1]
-            name = name.split('dwl=')[-1]
-            r.raise_for_status()
-            with open(out_directory + "\\" + name, 'wb') as write_file:
-                for chunk in r.iter_content(chunk_size=8192):
-                    write_file.write(chunk)
+        try:
+            with requests.get(url, stream=True) as r:
+                name = url.split('/')[-1]
+                name = name.split('dwl=')[-1]
+                r.raise_for_status()
+                with open(out_directory + "\\" + name, 'wb') as write_file:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        write_file.write(chunk)
+        except requests.exceptions.ConnectionError:
+            not_downloaded_error_thread = threading.Thread(target=messagebox.showerror, args=["Failed connection establishment", "Failed to download \"{}\". Check the \"Errors\" tab for more info.".format(soft_name)])
+            not_downloaded_error_thread.start()
+            
+            not_downloaded_list_label = custom_label_set(errors_tab, soft_name, 16)
+            not_downloaded_list_label.pack(side=TOP, anchor='nw')
 
         progress['value'] += progressbar_increment
         percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
@@ -188,36 +192,22 @@ def download_selected_software():
         progress['value'] = 0
 
         is_downloading = True
-        unable_to_download = []
-        clear_tab(errors_tab)
+        clear_tab(errors_tab, 1)
 
         def dict_download(software_dictkey, set_listbox):
             # software_dictkey: str
             for selected_key in set_listbox.curselection():
                 software_name = set_listbox.get(selected_key)
-                try:
-                    if get_architecture == 'x86':
-                        download_from_dict = all_links['for_x86'][software_dictkey]
-                    elif get_architecture == 'AMD64':
-                        download_from_dict = all_links['for_x64'][software_dictkey]
-                    main_download_using_requests(download_from_dict[software_name])
-                except requests.exceptions.ConnectionError:
-                    not_downloaded_error_thread = threading.Thread(target=messagebox.showerror, args=["Failed connection establishment", "Failed to download \"{}\". Either the site couldn't be accessed properly, or make sure you are connected to a network.".format(set_listbox.get(selected_key))])
-                    not_downloaded_error_thread.start()
-                    unable_to_download.append(software_name)
+                if get_architecture == 'x86':
+                    download_from_dict = all_links['for_x86'][software_dictkey]
+                elif get_architecture == 'AMD64':
+                    download_from_dict = all_links['for_x64'][software_dictkey]
+                main_download_using_requests(download_from_dict[software_name], software_name)
                 
         dict_download('browsers', browsers_listbox)
         dict_download('media', media_listbox)
         dict_download('utilities', utilities_listbox)
         dict_download('components', components_listbox)
-
-        if unable_to_download:
-            not_downloaded_list_label = custom_label_set(errors_tab, "The following couldn't be downloaded:", 16)
-            not_downloaded_list_label.pack(side=TOP, anchor='nw')
-
-            for not_downloaded in unable_to_download:
-                software_not_downloaded_label = custom_label_set(errors_tab, not_downloaded, 16)
-                software_not_downloaded_label.pack(side=TOP, anchor='nw')
 
 
         is_downloading = False
