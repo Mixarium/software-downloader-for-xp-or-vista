@@ -170,8 +170,10 @@ def append_to_lists():
                 download_from_dict = all_links['for_x86'][dictkey]
             elif get_architecture == 'AMD64':
                 download_from_dict = all_links['for_x64'][dictkey]
-            links_to_run.append((download_from_dict[software_name], software_name))
-            if threading_enabled:
+            
+            if not threading_enabled:
+                links_to_run.append((download_from_dict[software_name], software_name))
+            else:
                 download_thread = threading.Thread(target=main_download_using_requests, args=[download_from_dict[software_name], software_name])
                 threads_to_run.append(download_thread)
            
@@ -200,9 +202,11 @@ def download_selected_software():
         if not threading_enabled:
             for link, name in links_to_run:
                 main_download_using_requests(link, name)
+
                 progress['value'] += progressbar_increment
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
                 software_download_tab.update_idletasks()
+
             links_to_run.clear()
         else:
             for download_thread in threads_to_run:
@@ -214,7 +218,7 @@ def download_selected_software():
                 progress['value'] += progressbar_increment
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
                 software_download_tab.update_idletasks()
-            
+
             threads_to_run.clear()
 
         is_downloading = False

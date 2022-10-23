@@ -67,7 +67,7 @@ links_dict = {
             'nLite': 'http://www.nliteos.com/download/nLite-1.4.9.3.setup.exe',
             'Notepad++': 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.9.2/npp.7.9.2.Installer.exe',
             'qBittorrent': 'https://archive.org/download/qbittorrent_4.1.9.1_setup/qbittorrent_4.1.9.1_setup.exe',
-            'Rufus': 'https://github.com/pbatard/rufus/releases/download/v2.18/rufus-2.18.exe',
+            'Rufus 2.18': 'https://github.com/pbatard/rufus/releases/download/v2.18/rufus-2.18.exe',
             'Snappy': 'http://sdi-tool.org:8080/releases/SDI_R2201.zip', # !
             'TCP Optimizer': 'https://www.speedguide.net/files/TCPOptimizer.exe',
             'TenFourFoxPEP': 'https://macintoshgarden.org/sites/macintoshgarden.org/files/apps/TenFourFoxPEP_1.zip',
@@ -82,6 +82,7 @@ links_dict = {
     },
     'for_x64': {
         'browsers': {
+            #'360Chrome v11.0': '{link}', planning to add it sometime
             'Firefox 45.9.0esr': 'https://archive.mozilla.org/pub/firefox/releases/45.9.0esr/win64/en-US/Firefox Setup 45.9.0esr.exe',
             'Firefox 52.9.0esr': 'https://archive.mozilla.org/pub/firefox/releases/52.9.0esr/win64/en-US/Firefox Setup 52.9.0esr.exe',
             'K-Meleon 76': 'https://o.rthost.win/kmeleon/KM76.4.6-Goanna-20220910.7z', # !
