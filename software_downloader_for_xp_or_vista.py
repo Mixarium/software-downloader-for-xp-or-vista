@@ -139,44 +139,45 @@ def clear_tab(selected_tab, from_index=0):
     widget_list = selected_tab.winfo_children()
     for w in widget_list[from_index:]:
         w.destroy()
-            
 
-progress = Progressbar(software_download_tab, orient = HORIZONTAL, length = 200, mode = 'determinate')
-percentage_completed = custom_label_set(software_download_tab, text='0% completed.', font_size=12)
-progressbar_increment = 0
 
 def main_download_using_requests(url, soft_name):
+    try:
+        with requests.get(url, stream=True) as r:
+            name = url.split('/')[-1]
+            name = name.split('dwl=')[-1]
+            r.raise_for_status()
+            with open(out_directory + "\\" + name, 'wb') as write_file:
+                for chunk in r.iter_content(chunk_size=8192):
+                    write_file.write(chunk)
+    except requests.exceptions.ConnectionError:
+        not_downloaded_error_thread = threading.Thread(target=messagebox.showerror, args=["Failed connection establishment", "Failed to download \"{}\". Check the \"Errors\" tab for more info.".format(soft_name)])
+        not_downloaded_error_thread.start()
+        
+        not_downloaded_list_label = custom_label_set(errors_tab, soft_name, 16)
+        not_downloaded_list_label.pack(side=TOP, anchor='nw')
 
-    def actual_main_download(url):
-        try:
-            with requests.get(url, stream=True) as r:
-                name = url.split('/')[-1]
-                name = name.split('dwl=')[-1]
-                r.raise_for_status()
-                with open(out_directory + "\\" + name, 'wb') as write_file:
-                    for chunk in r.iter_content(chunk_size=8192):
-                        write_file.write(chunk)
-        except requests.exceptions.ConnectionError:
-            not_downloaded_error_thread = threading.Thread(target=messagebox.showerror, args=["Failed connection establishment", "Failed to download \"{}\". Check the \"Errors\" tab for more info.".format(soft_name)])
-            not_downloaded_error_thread.start()
-            
-            not_downloaded_list_label = custom_label_set(errors_tab, soft_name, 16)
-            not_downloaded_list_label.pack(side=TOP, anchor='nw')
 
-        progress['value'] += progressbar_increment
-        percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
-        software_download_tab.update_idletasks()    
+all_listboxes = [(browsers_listbox, 'browsers'), (media_listbox, 'media'), (utilities_listbox, 'utilities'), (components_listbox, 'components')]
+links_to_run = []
+threads_to_run = []
 
-    if threading_enabled:
-        new_download_thread = threading.Thread(target=actual_main_download, args=[url], daemon=True)
-        new_download_thread.start()
-    else:
-        actual_main_download(url)
-
+def append_to_lists():
+    for set_listbox, dictkey in all_listboxes:
+        for software_dictkey in set_listbox.curselection():
+            software_name = set_listbox.get(software_dictkey)
+            if get_architecture == 'x86':
+                download_from_dict = all_links['for_x86'][dictkey]
+            elif get_architecture == 'AMD64':
+                download_from_dict = all_links['for_x64'][dictkey]
+            links_to_run.append((download_from_dict[software_name], software_name))
+            if threading_enabled:
+                download_thread = threading.Thread(target=main_download_using_requests, args=[download_from_dict[software_name], software_name])
+                threads_to_run.append(download_thread)
+           
 
 def download_selected_software():
     global is_downloading
-    global progressbar_increment
 
     if not out_directory:
         return messagebox.showerror('Missing output directory', "The output directory hasn't been chosen yet.")
@@ -185,30 +186,36 @@ def download_selected_software():
         sum_of_selected = len(browsers_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection()) + len(components_listbox.curselection())
         if sum_of_selected == 0:
             return messagebox.showerror('No programs selected', 'No programs were selected.')
+        progress = Progressbar(software_download_tab, orient = HORIZONTAL, length = 200, mode = 'determinate')
+        percentage_completed = custom_label_set(software_download_tab, text='0% completed.', font_size=12)
         progressbar_increment = 100 / sum_of_selected
         progress.place(x=0, y=500)
-        percentage_completed.config(text='0% completed.')
         percentage_completed.place(x=210, y=500)
         progress['value'] = 0
+        append_to_lists()
 
         is_downloading = True
         clear_tab(errors_tab, 1)
-
-        def dict_download(software_dictkey, set_listbox):
-            # software_dictkey: str
-            for selected_key in set_listbox.curselection():
-                software_name = set_listbox.get(selected_key)
-                if get_architecture == 'x86':
-                    download_from_dict = all_links['for_x86'][software_dictkey]
-                elif get_architecture == 'AMD64':
-                    download_from_dict = all_links['for_x64'][software_dictkey]
-                main_download_using_requests(download_from_dict[software_name], software_name)
+        
+        if not threading_enabled:
+            for link, name in links_to_run:
+                main_download_using_requests(link, name)
+                progress['value'] += progressbar_increment
+                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
+                software_download_tab.update_idletasks()
+            links_to_run.clear()
+        else:
+            for download_thread in threads_to_run:
+                download_thread.start()
+            
+            for download_thread in threads_to_run:
+                download_thread.join()
                 
-        dict_download('browsers', browsers_listbox)
-        dict_download('media', media_listbox)
-        dict_download('utilities', utilities_listbox)
-        dict_download('components', components_listbox)
-
+                progress['value'] += progressbar_increment
+                percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
+                software_download_tab.update_idletasks()
+            
+            threads_to_run.clear()
 
         is_downloading = False
     else:
