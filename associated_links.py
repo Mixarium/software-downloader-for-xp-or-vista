@@ -24,12 +24,12 @@ links_dict = {
         'browsers': {
             'Firefox 45.9.0esr': 'https://archive.mozilla.org/pub/firefox/releases/45.9.0esr/win32/en-US/Firefox Setup 45.9.0esr.exe',
             'Firefox 52.9.0esr': 'https://archive.mozilla.org/pub/firefox/releases/52.9.0esr/win32/en-US/Firefox Setup 52.9.0esr.exe',
-            'K-Meleon 76.4.6': 'https://o.rthost.win/kmeleon/KM76.4.6-Goanna-20220910.7z', # !
+            'K-Meleon 76.4.6': 'https://o.rthost.win/kmeleon/KM76.4.6-Goanna-20221022.7z', # !
             'Mypal 68': mypal68_version, # !
             'Mypal 29 (Legacy)': 'https://mypal-browser.org/release/mypal-29.3.0.win32.installer.exe',
-            'NewMoon': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win32-git-20221015-0be1a20aba-xpmod.7z', # !
-            'NewMoon (SSE)': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win32-git-20221015-0be1a20aba-xpmod-sse.7z', # !
-            'NewMoon (no SSE)': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win32-git-20221015-0be1a20aba-xpmod-ia32.7z', # !
+            'NewMoon': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win32-git-20221022-c0522908da-xpmod.7z', # !
+            'NewMoon (SSE)': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win32-git-20221022-c0522908da-xpmod-sse.7z', # !
+            'NewMoon (no SSE)': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win32-git-20221022-c0522908da-xpmod-ia32.7z', # !
             'Opera 36': 'http://web.archive.org/web/20191007170021/https://ftp.opera.com/ftp/pub/opera-winxpvista/36.0.2130.80/win/Opera_winxpvista_36.0.2130.80_Setup.exe',
             'Serpent': 'https://o.rthost.win/basilisk/basilisk52-g4.8.win32-git-20221015-3219d2d-uxp-221a4433e-xpmod.7z', # !
             'Serpent (no SSE)': 'https://o.rthost.win/basilisk/basilisk52-g4.8.win32-git-20221015-3219d2d-uxp-221a4433e-xpmod-ia32.7z' # !
@@ -54,7 +54,7 @@ links_dict = {
             'Autoruns': 'https://web.archive.org/web/20210226223738/https://download.sysinternals.com/files/Autoruns.zip',
             'CDBurnerXP': 'https://web.archive.org/web/20210910131429/https://download.cdburnerxp.se/cdbxp_setup_4.5.8.7128_minimal.exe', # ?
             'Certificate Updater': 'http://i430vx.net/files/misc/Cert_Updater_v1.6.exe',
-            'CPU-Z': 'https://download.cpuid.com/cpu-z/cpu-z_2.02-en.exe', # !
+            'CPU-Z': 'https://download.cpuid.com/cpu-z/cpu-z_2.03-en.exe', # !
             'CrystalDiskInfo': 'https://free.nchc.org.tw/osdn//crystaldiskinfo/77877/CrystalDiskInfo8_17_8.zip', # !
             'CrystalDiskMark': 'https://free.nchc.org.tw/osdn/crystaldiskmark/77539/CrystalDiskMark8_0_4b.zip', # !
             'Dependency Walker': 'https://www.dependencywalker.com/depends22_x86.zip', # ?
@@ -85,10 +85,10 @@ links_dict = {
             #'360Chrome v11.0': '{link}', planning to add it sometime
             'Firefox 45.9.0esr': 'https://archive.mozilla.org/pub/firefox/releases/45.9.0esr/win64/en-US/Firefox Setup 45.9.0esr.exe',
             'Firefox 52.9.0esr': 'https://archive.mozilla.org/pub/firefox/releases/52.9.0esr/win64/en-US/Firefox Setup 52.9.0esr.exe',
-            'K-Meleon 76': 'https://o.rthost.win/kmeleon/KM76.4.6-Goanna-20220910.7z', # !
+            'K-Meleon 76.4.6': 'https://o.rthost.win/kmeleon/KM76.4.6-Goanna-20221022.7z', # !
             'Mypal 68': mypal68_version, # !
             'Mypal 29 (Legacy)': 'https://mypal-browser.org/release/mypal-29.3.0.win64.installer.exe',
-            'NewMoon': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win64-git-20221015-0be1a20aba-xpmod.7z', # !
+            'NewMoon': 'https://o.rthost.win/palemoon/palemoon-27.10.0.win64-git-20221022-c0522908da-xpmod.7z', # !
             'Opera 36': 'http://web.archive.org/web/20191007170021/https://ftp.opera.com/ftp/pub/opera-winxpvista/36.0.2130.80/win/Opera_winxpvista_36.0.2130.80_Setup.exe',
             'Serpent': 'https://o.rthost.win/basilisk/basilisk52-g4.8.win64-git-20221015-3219d2d-uxp-221a4433e-xpmod.7z', # !
         },
@@ -112,7 +112,7 @@ links_dict = {
             'Autoruns': 'https://web.archive.org/web/20210226223738/https://download.sysinternals.com/files/Autoruns.zip',
             'CDBurnerXP': 'https://web.archive.org/web/20210910131429/https://download.cdburnerxp.se/cdbxp_setup_4.5.8.7128_minimal.exe', # ?
             'Certificate Updater': 'http://i430vx.net/files/misc/Cert_Updater_v1.6.exe',
-            'CPU-Z': 'https://download.cpuid.com/cpu-z/cpu-z_2.02-en.exe', # !
+            'CPU-Z': 'https://download.cpuid.com/cpu-z/cpu-z_2.03-en.exe', # !
             'CrystalDiskInfo': 'https://free.nchc.org.tw/osdn//crystaldiskinfo/77877/CrystalDiskInfo8_17_8.zip', # !
             'CrystalDiskMark': 'https://free.nchc.org.tw/osdn/crystaldiskmark/77539/CrystalDiskMark8_0_4b.zip', # !
             'Dependency Walker': 'https://www.dependencywalker.com/depends22_x64.zip', # ?

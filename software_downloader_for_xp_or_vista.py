@@ -54,7 +54,6 @@ def insert_elements(given_listbox, search_key):
 
 
 browsers_listbox = Listbox(software_download_tab, height=7, width=16, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
-insert_elements(browsers_listbox, 'browsers')
 browsers_listbox.place(x=0, y=125)
 
 browsers_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=browsers_listbox.yview)
@@ -65,7 +64,6 @@ browsers_label = custom_label_set(software_download_tab, 'Browsers', 12, 'bold')
 browsers_label.place(x=0, y=100)
 
 utilities_listbox = Listbox(software_download_tab, height=7, width=22, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
-insert_elements(utilities_listbox, 'utilities')
 utilities_listbox.place(x=170, y=125)
 
 utilities_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=utilities_listbox.yview)
@@ -76,7 +74,6 @@ utilities_label = custom_label_set(software_download_tab, 'Utilities', 12, 'bold
 utilities_label.place(x=170, y=100)
 
 media_listbox = Listbox(software_download_tab, height=7, width=20, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
-insert_elements(media_listbox, 'media')
 media_listbox.place(x=393, y=125)
 
 media_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=media_listbox.yview)
@@ -87,7 +84,6 @@ media_label = custom_label_set(software_download_tab, 'Media', 12, 'bold')
 media_label.place(x=390, y=100)
 
 components_listbox = Listbox(software_download_tab, height=7, width=20, bg='#015475', font=("Arial", 12), bd=0, selectbackground='blue', selectmode=MULTIPLE, activestyle=NONE, exportselection=False)
-insert_elements(components_listbox, 'components')
 components_listbox.place(x=0, y=300)
 
 components_listbox_scrollbar = Scrollbar(software_download_tab, orient='vertical', command=components_listbox.yview)
@@ -96,6 +92,10 @@ components_listbox_scrollbar.place(x=185, y=340)
 
 components_label = custom_label_set(software_download_tab, 'Components', 12, 'bold')
 components_label.place(x=0, y=275)
+
+all_listboxes = [(browsers_listbox, 'browsers'), (media_listbox, 'media'), (utilities_listbox, 'utilities'), (components_listbox, 'components')]
+for listbox_to_insert, key_insert in all_listboxes:
+    insert_elements(listbox_to_insert, key_insert)
 
 out_directory = ""
 
@@ -119,10 +119,7 @@ def threading_toggle():
     varcheck = threading_toggle_check.get()
     if not is_downloading:
         global threading_enabled
-        if varcheck == 1:
-            threading_enabled = True
-        elif varcheck == 0:
-            threading_enabled = False
+        threading_enabled = True if varcheck == 1 else False
     else:
         threading_toggle_check.set(not varcheck)
         current_download_process_from_thread_toggle_attempt_error = threading.Thread(target=messagebox.showerror, args=['Currently downloading', "There's a current download process happening now. Can't switch the threading option."])
@@ -158,9 +155,8 @@ def main_download_using_requests(url, soft_name):
         not_downloaded_list_label.pack(side=TOP, anchor='nw')
 
 
-all_listboxes = [(browsers_listbox, 'browsers'), (media_listbox, 'media'), (utilities_listbox, 'utilities'), (components_listbox, 'components')]
-links_to_run = []
-threads_to_run = []
+links_or_threads_to_run = []
+
 
 def append_to_lists():
     for set_listbox, dictkey in all_listboxes:
@@ -172,10 +168,10 @@ def append_to_lists():
                 download_from_dict = all_links['for_x64'][dictkey]
             
             if not threading_enabled:
-                links_to_run.append((download_from_dict[software_name], software_name))
+                links_or_threads_to_run.append((download_from_dict[software_name], software_name))
             else:
                 download_thread = threading.Thread(target=main_download_using_requests, args=[download_from_dict[software_name], software_name])
-                threads_to_run.append(download_thread)
+                links_or_threads_to_run.append(download_thread)
            
 
 def download_selected_software():
@@ -185,7 +181,8 @@ def download_selected_software():
         return messagebox.showerror('Missing output directory', "The output directory hasn't been chosen yet.")
 
     if not is_downloading:
-        sum_of_selected = len(browsers_listbox.curselection()) + len(utilities_listbox.curselection()) + len(media_listbox.curselection()) + len(components_listbox.curselection())
+        append_to_lists()
+        sum_of_selected = len(links_or_threads_to_run)
         if sum_of_selected == 0:
             return messagebox.showerror('No programs selected', 'No programs were selected.')
         progress = Progressbar(software_download_tab, orient = HORIZONTAL, length = 200, mode = 'determinate')
@@ -194,33 +191,29 @@ def download_selected_software():
         progress.place(x=0, y=500)
         percentage_completed.place(x=210, y=500)
         progress['value'] = 0
-        append_to_lists()
 
         is_downloading = True
         clear_tab(errors_tab, 1)
         
         if not threading_enabled:
-            for link, name in links_to_run:
+            for link, name in links_or_threads_to_run:
                 main_download_using_requests(link, name)
 
                 progress['value'] += progressbar_increment
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
                 software_download_tab.update_idletasks()
-
-            links_to_run.clear()
         else:
-            for download_thread in threads_to_run:
+            for download_thread in links_or_threads_to_run:
                 download_thread.start()
             
-            for download_thread in threads_to_run:
+            for download_thread in links_or_threads_to_run:
                 download_thread.join()
                 
                 progress['value'] += progressbar_increment
                 percentage_completed.config(text='{}% completed.'.format(round(progress['value'])))
                 software_download_tab.update_idletasks()
-
-            threads_to_run.clear()
-
+                
+        links_or_threads_to_run.clear()
         is_downloading = False
     else:
         current_download_process_from_download_attempt_error = threading.Thread(target=messagebox.showerror, args=['Currently downloading', "There's a current download process happening now."])
